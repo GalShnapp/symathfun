@@ -1,5 +1,20 @@
 import * as React from "react";
 import { ReactSketchCanvas } from "react-sketch-canvas";
+import axios from "axios";
+import appAuth from "../secrets/Secrets";
+
+const base64ToLatex = (base64) => {
+    const headers = { 
+        ...appAuth,
+        'Content-type': 'application/json'
+    };
+
+    const data = {
+        'url': base64
+    }
+    axios.post('https://api.mathpix.com/v3/latex', data, { headers })
+        .then(response => console.log(response));
+}
 
 const Canvas = class extends React.Component {
   constructor(props) {
@@ -21,7 +36,7 @@ const Canvas = class extends React.Component {
             this.canvas.current
               .exportImage("jpeg")
               .then((data) => {
-                console.log(data);
+                base64ToLatex(data);
               })
               .catch((e) => {
                 console.log(e);
