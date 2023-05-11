@@ -1,35 +1,46 @@
 import sympy
 from sympy.parsing.latex import parse_latex
-import sys
-import base64
-import requests
-import json
 import re
+import uvicorn
+from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
-# put desired file path here
-file_path = 'limit.jpg'
-image_uri = "data:image/jpg;base64," + base64.b64encode(open(file_path, "rb").read()).decode()
-
-
-r = requests.post("https://api.mathpix.com/v3/latex",
-    data=json.dumps({'url': image_uri}),
-    headers={"app_id": "CENSORED", "app_key": "CENSORED",
-        "Content-type": "application/json"})
-
-# print (r.text)
-# print(r.json()["latex"])
-
-# x,y = sympy.symbols('x y')
-# expr = x + 2*y
-# print(expr)
-# print(expr + 1)
-# print(expr + 1 - x)
+class Row(BaseModel):
+    latex: str
 
 def operatorNameCleanUp(originalLatexString):
     return re.sub(r"(operatorname { ([a-z]*) })", r"\2", originalLatexString)
 
-l = r.json()["latex"]
-ql = operatorNameCleanUp(l)
-print(ql)
-expr = parse_latex(ql)
-print(expr)
+app = FastAPI()
+
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+@app.post("/row")
+async def create_row(row: Row) -> dict:
+    latex = row.latex
+    cleandLatex = operatorNameCleanUp(latex)
+    expr = parse_latex(cleandLatex)
+    x = sympy.Symbol('x')
+    sol = sympy.solve(expr, x)[0]
+    return {
+        "data": sol.__str__()
+    }
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

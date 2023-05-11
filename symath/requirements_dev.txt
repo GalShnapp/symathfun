@@ -12,3 +12,6 @@ pytest==6.2.4
 black==21.7b0
 antlr4-python3-runtime==4.11
 sympy
+fastapi>=0.68.0,<0.69.0
+pydantic>=1.8.0,<2.0.0
+uvicorn>=0.15.0,<0.16.0
