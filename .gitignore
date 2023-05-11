@@ -104,3 +104,6 @@ ENV/
 # IDE settings
 .vscode/
 .idea/
+
+# js things
+*node_modules*
