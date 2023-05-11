@@ -1,12 +1,11 @@
 import * as React from "react";
 import { ReactSketchCanvas } from "react-sketch-canvas";
 import axios from "axios";
-
+import appAuth from "../secrets/Secrets";
 
 const base64ToLatex = (base64) => {
     const headers = { 
-        'app_id': 'gal_shnapp_gmail_com_9439c6_c2248b',
-        'app_key': 'b7cc65bbffe436311a2e2338e1234e07e549b191eae2d2d2af9a5c7cabcd3c25',
+        ...appAuth,
         'Content-type': 'application/json'
     };
 
