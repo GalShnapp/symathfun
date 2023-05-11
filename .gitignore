@@ -107,3 +107,4 @@ ENV/
 
 # js things
 *node_modules*
+notebook/src/secrets
