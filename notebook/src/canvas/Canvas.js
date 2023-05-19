@@ -39,11 +39,10 @@ const Canvas = class extends React.Component {
     }
 
     render() {
-        return (
-            <div>
+        return (<>
                 <ReactSketchCanvas
                     ref={this.canvas}
-                    strokeWidth={5}
+                    strokeWidth={2}
                     strokeColor="black"
                 />
                 <button
@@ -60,7 +59,7 @@ const Canvas = class extends React.Component {
                 >
                     Get Image
                 </button>
-            </div>
+                </>
         );
     }
 };

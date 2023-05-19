@@ -2,6 +2,7 @@ import React from "react";
 import Immutable from "immutable";
 import Drawing from "./Drawing";
 import "./style.css";
+import toImg from "react-svg-to-image";
 
 const DrawingArea = (props) => {
     /*
@@ -12,7 +13,6 @@ const DrawingArea = (props) => {
                     return 'data:image/svg+xml,' + escape(ReactDOMServer.renderToStaticMarkup((reactElement)));
                 }
             2. fix bounding box logic:
-                a. make it work
                 b. send BB to OCR.
             3. refactor using a reducer
             4. make reset button on DBG mode only.
@@ -20,26 +20,37 @@ const DrawingArea = (props) => {
     const [state, setState] = React.useState({
         isDrawing: false,
         lines: Immutable.List(),
-        bBtop: 1000,
-        bBleft: 1000,
+        bBtop: 10000,
+        bBleft: 10000,
         bBbottom: 0,
         bBright: 0,
     });
 
     const drawingAreaRef = React.useRef();
-    React.useEffect(() => {
-        const tid = setTimeout(() => {
-            if (state.isDrawing) return;
+    const drawingRef = React.useRef();
 
+    React.useEffect(() => {
+        if (state.isDrawing) return;
+        const tid = setTimeout(() => {
+            drawingRef.current
+                .svgToJPEG()
+                .then((a) => {
+                    console.log(a);
+                })
+                .catch((err) => console.log(err));
+            toImg("#gaba", "name", {
+                scale: 1,
+                format: "jpeg",
+                quality: 1.0,
+                download: false,
+            }).then(fd => {
+                console.log(fd);
+            })
             setState((prev) => {
-                console.log(prev.bBbottom);
-                console.log(prev.bBtop);
-                console.log(prev.bBleft);
-                console.log(prev.bBright);
                 return {
                     isDrawing: false,
-                    bBtop: 1000,
-                    bBleft: 1000,
+                    bBtop: 10000,
+                    bBleft: 10000,
                     bBbottom: 0,
                     bBright: 0,
                     lines: prev.lines.push(
@@ -70,8 +81,6 @@ const DrawingArea = (props) => {
             });
         }, 500);
 
-        if (!state.isDrawing) {
-        }
         return () => {
             clearTimeout(tid);
         };
@@ -91,8 +100,8 @@ const DrawingArea = (props) => {
             return {
                 isDrawing: false,
                 lines: Immutable.List(),
-                bBtop: 1000,
-                bBleft: 1000,
+                bBtop: 10000,
+                bBleft: 10000,
                 bBbottom: 0,
                 bBright: 0,
             };
@@ -106,16 +115,11 @@ const DrawingArea = (props) => {
 
         const point = relativeCoordinatesForEvent(mouseEvent);
         setState((prevState) => {
-            console.log(prevState.bBbottom);
-            console.log(prevState.bBtop);
-            console.log(prevState.bBleft);
-            console.log(prevState.bBright);
-            console.log(point.get('x'))
             return {
-                bBtop: Math.max(point.get('y'), prevState.bBtop),
-                bBleft: Math.min(point.get('x'), prevState.bBleft),
-                bBbottom: Math.min(point.get('y'), prevState.bBbottom),
-                bBright: Math.max(point.get('x'), prevState.bBright),
+                bBtop: Math.min(point.get("y"), prevState.bBtop),
+                bBleft: Math.min(point.get("x"), prevState.bBleft),
+                bBbottom: Math.max(point.get("y"), prevState.bBbottom),
+                bBright: Math.max(point.get("x"), prevState.bBright),
                 lines: prevState.lines.push(Immutable.List([point])),
                 isDrawing: true,
             };
@@ -131,10 +135,10 @@ const DrawingArea = (props) => {
 
         setState((prevState) => {
             return {
-                bBtop: Math.max(point.get('y'), prevState.bBtop),
-                bBleft: Math.min(point.get('x'), prevState.bBleft),
-                bBbottom: Math.min(point.get('y'), prevState.bBbottom),
-                bBright: Math.max(point.get('x'), prevState.bBright),
+                bBtop: Math.min(point.get("y"), prevState.bBtop),
+                bBleft: Math.min(point.get("x"), prevState.bBleft),
+                bBbottom: Math.max(point.get("y"), prevState.bBbottom),
+                bBright: Math.max(point.get("x"), prevState.bBright),
                 isDrawing: true,
                 lines: prevState.lines.updateIn(
                     [prevState.lines.size - 1],
@@ -157,6 +161,8 @@ const DrawingArea = (props) => {
         });
     };
 
+    const drawing = <Drawing lines={state.lines} ref={drawingRef} />;
+
     return (
         <div
             className="drawArea"
@@ -166,7 +172,7 @@ const DrawingArea = (props) => {
             onMouseUp={handleMouseUp}
         >
             <button onClick={handleClicky}>Reset Button FTW!</button>
-            <Drawing lines={state.lines} />
+            {drawing}
         </div>
     );
 };
